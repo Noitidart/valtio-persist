@@ -1,8 +1,9 @@
 {
   "name": "valtio-persist",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Flexible and performant saving of state to disk.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "files": [
     "lib/**/*"
   ],
@@ -21,8 +22,14 @@
     "type": "git",
     "url": "git+https://github.com/Noitidart/valtio-persist.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "valtio",
+    "disk",
+    "persist",
+    "save",
+    "file"
+  ],
+  "author": "Noitidart",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Noitidart/valtio-persist/issues"
