@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Noitidart/valtio-persist/issues"
   },
-  "homepage": "https://github.com/Noitidart/valtio-persist#readme"
+  "homepage": "https://github.com/Noitidart/valtio-persist#readme",
+  "devDependencies": {
+    "typescript": "^4.4.4"
+  }
 }
