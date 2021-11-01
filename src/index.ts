@@ -18,7 +18,7 @@ export enum PersistStrategy {
 }
 
 type Write = () => ReturnType<ProxyPersistStorageEngine['setItem']>;
-type BulkWrite = () => Promise<Array<ReturnType<Write>>>;
+type BulkWrite = () => Promise<ReturnType<Write>[]>;
 type OnBeforeBulkWrite = (bulkWrite: BulkWrite) => void;
 type OnBeforeWrite = (write: Write, path: string) => void;
 type Version = number;
@@ -78,7 +78,7 @@ export default function proxyWithPersist<S extends object>(inputs: IProxyWithPer
     },
   });
 
-  (async function () {
+  (async () => {
     const storage = await inputs.getStorage();
 
     // key is path, value is un-stringified value. stringify happens at time of write
@@ -96,12 +96,10 @@ export default function proxyWithPersist<S extends object>(inputs: IProxyWithPer
           if (value === null) {
             // delete it
             write = () => {
-              console.log('deleting filePath:', filePath);
               return storage.removeItem(filePath);
             };
           } else {
             write = () => {
-              console.log('writing filePath:', filePath, 'value:', value);
               return storage.setItem(filePath, JSON.stringify(value));
             };
           }
@@ -109,7 +107,7 @@ export default function proxyWithPersist<S extends object>(inputs: IProxyWithPer
         }),
       );
 
-    const onBeforeBulkWrite: OnBeforeBulkWrite = inputs.onBeforeBulkWrite || ((bulkWrite) => bulkWrite());
+    const onBeforeBulkWrite: OnBeforeBulkWrite = inputs.onBeforeBulkWrite || ((bulkWriteRef) => bulkWriteRef());
 
     const allKeys =
       inputs.persistStrategies === PersistStrategy.MultiFile ||
@@ -132,7 +130,6 @@ export default function proxyWithPersist<S extends object>(inputs: IProxyWithPer
 
         if (strategy === PersistStrategy.SingleFile) {
           const persistedString = await storage.getItem(filePath);
-          console.log('persistedString:', persistedString);
 
           if (persistedString === null) {
             // file does not exist
@@ -170,7 +167,6 @@ export default function proxyWithPersist<S extends object>(inputs: IProxyWithPer
               persistPath(proxyObject);
             });
           } else {
-            console.log({ proxySubObject, pathKey });
             subscribeKey(proxySubObject, pathKey, persistPath);
           }
         } else if (strategy === PersistStrategy.MultiFile) {
@@ -198,12 +194,12 @@ export default function proxyWithPersist<S extends object>(inputs: IProxyWithPer
 
                 // persistedFilePath has the inputs.name prefix and "-" so get
                 // the dot path that starts after this.
-                const path = persistedFilePath.substring(inputs.name.length + '-'.length);
-                const target = get(proxyObject, path);
+                const targetPath = persistedFilePath.substring(inputs.name.length + '-'.length);
+                const target = get(proxyObject, targetPath);
                 if (isPlainObject(target) && isPlainObject(persistedValue)) {
                   Object.assign(target, persistedValue);
                 } else {
-                  set(proxyObject, path, persistedValue);
+                  set(proxyObject, targetPath, persistedValue);
                 }
               }),
           );
@@ -253,8 +249,6 @@ export default function proxyWithPersist<S extends object>(inputs: IProxyWithPer
               : snapshot(proxySubObject[pathKey]);
 
             if (addedKeys.length || removedKeys.length || updatedKeys.length) {
-              console.log(JSON.stringify({ addedKeys, removedKeys, updatedKeys }, null, 2));
-
               removedKeys.forEach((key) => {
                 pendingWrites[filePath + (isPersistingMainObject ? '' : '.') + key] = null;
               });
@@ -267,12 +261,11 @@ export default function proxyWithPersist<S extends object>(inputs: IProxyWithPer
             }
           };
           if (isPersistingMainObject) {
-            subscribe(proxyObject, function (ops) {
+            subscribe(proxyObject, (ops) => {
               // if (!proxyObject._persist.loaded) {
               //   return;
               // }
               if (ops.every((op) => op[1][0] === '_persist')) {
-                console.log('all are _persist, dont persist');
                 return;
               }
               persistLeaf(proxyObject);
@@ -298,7 +291,6 @@ export default function proxyWithPersist<S extends object>(inputs: IProxyWithPer
       if (metaPersistedData.version < inputs.version) {
         for (let currentVersion = metaPersistedData.version + 1; currentVersion <= inputs.version; currentVersion++) {
           const migration = inputs.migrations[currentVersion];
-          console.log('currentVersion:', currentVersion, 'migration:', migration);
 
           if (migration) {
             await migration();
@@ -308,7 +300,6 @@ export default function proxyWithPersist<S extends object>(inputs: IProxyWithPer
     }
 
     if (metaPersistedData?.version !== inputs.version) {
-      console.log('writing metaPersist');
       await storage.setItem(
         metaFilePath,
         JSON.stringify({
