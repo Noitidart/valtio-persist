@@ -150,10 +150,41 @@ import proxyWithPersist from 'valtio-persist';
 import type { ProxyPersistStorageEngine } from 'valtio-persist';
 
 const storage: ProxyPersistStorageEngine = {
-  getItem: name => FileSystem.readAsStringAsync(FileSystem.documentDirectory + name),
   setItem: (name, value) => FileSystem.writeAsStringAsync(FileSystem.documentDirectory + name, value),
   removeItem: name => FileSystem.deleteAsync(FileSystem.documentDirectory + name),
-  getAllKeys: () => FileSystem.readDirectoryAsync(FileSystem.documentDirectory);
+  getAllKeys: () => FileSystem.readDirectoryAsync(FileSystem.documentDirectory),
+  getItem: async name => {
+    try {
+      return await FileSystem.readAsStringAsync(
+        FileSystem.documentDirectory + name
+      );
+    } catch (error) {
+      if (/File \'.*?\' could not be read./.test(error.message)) {
+        // getItem is supposed to return null if file does not exist. expo-file-system
+        // is lumping "file could not be read" with "file could not be found". Do an
+        // existence check here, if it doesn't exist, then return null, if it exists,
+        // then throw original error, as it exists but could not be read.
+
+        // Do not try-catch on FileSystem.getInfoAsync. If this fails, I want it
+        // to throw.
+        const info = await FileSystem.getInfoAsync(
+          FileSystem.documentDirectory + name
+        );
+        if (info.exists) {
+          // Throw original error, as FileSystem.readAsStringAsync failed to
+          // read an existing file.
+          throw error;
+        } else {
+          // File does not exist, that's why FileSystem.readAsStringAsync
+          // errored, so just return `null` as all is well, just file does not
+          // exist.
+          return null;
+        }
+      } else {
+        throw error;
+      }
+    }
+  }
 };
 
 const stateProxy = proxyWithPersist({
