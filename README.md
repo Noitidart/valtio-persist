@@ -159,11 +159,20 @@ const storage: ProxyPersistStorageEngine = {
         FileSystem.documentDirectory + name
       );
     } catch (error) {
-      if (/File \'.*?\' could not be read./.test(error.message)) {
-        // getItem is supposed to return null if file does not exist. expo-file-system
-        // is lumping "file could not be read" with "file could not be found". Do an
-        // existence check here, if it doesn't exist, then return null, if it exists,
-        // then throw original error, as it exists but could not be read.
+      if (
+        Platform.OS === 'android' &&
+        /.*? \(No such file or directory\)/.test(error.message)
+      ) {
+        // valtio-persist request null be returned when no file found.
+        return null;
+      } else if (
+        Platform.OS === 'ios' &&
+        /File \'.*?\' could not be read./.test(error.message)
+      ) {
+        // On iOS, expo-file-system is lumping file could not be read with file could
+        // not be found. Do an existence check here, if it doesn't exist, then
+        // return null, if it exists, then throw original error, as it exists
+        // but could not be read.
 
         // Do not try-catch on FileSystem.getInfoAsync. If this fails, I want it
         // to throw.
