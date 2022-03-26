@@ -103,7 +103,7 @@ const storage: ProxyPersistStorageEngine = {
   getItem: name => window.localStorage.getItem(name),
   setItem: (name, value) => window.localStorage.setItem(name, value),
   removeItem: name => window.localStorage.removeItem(name),
-  getAllKeys: () => Object.keys(window.localStorage);
+  getAllKeys: () => Object.keys(window.localStorage)
 };
 
 const stateProxy = proxyWithPersist({
