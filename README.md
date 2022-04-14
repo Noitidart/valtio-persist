@@ -163,7 +163,7 @@ const storage: ProxyPersistStorageEngine = {
         Platform.OS === 'android' &&
         /.*? \(No such file or directory\)/.test(error.message)
       ) {
-        // valtio-persist request null be returned when no file found.
+        // valtio-persist wnat's us to return null when no file found.
         return null;
       } else if (
         Platform.OS === 'ios' &&
@@ -318,7 +318,7 @@ When the app runs, it finds the last persisted version was `0`, but the current 
 
 Sometimes, writing to disk on every change immediately hurts performance. Here is a technique to changes get persisted at most once a second. It uses the [`throttle`](https://lodash.com/docs/4.17.15#throttle) method from lodash. It will save to disk at most once a second.
 
-Note: Debounce is not recommended as it could lead to starvation. For example, if writes are debounced to 1 second, but writes happen after 0.5s, then a write will never happen.
+Note: Debounce is not recommended as it could lead to starvation. For example, if writes are debounced to 1 second, but changes to the proxy state happen every 0.5s, then a write will never happen.
 
 ```
 npm i lodash
