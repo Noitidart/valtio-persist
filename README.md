@@ -163,7 +163,7 @@ const storage: ProxyPersistStorageEngine = {
         Platform.OS === 'android' &&
         /.*? \(No such file or directory\)/.test(error.message)
       ) {
-        // valtio-persist wnat's us to return null when no file found.
+        // valtio-persist wants us to return null when no file found.
         return null;
       } else if (
         Platform.OS === 'ios' &&
