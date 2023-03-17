@@ -1,3 +1,8 @@
+## Warning
+This library needs to be updated. It currently doesn't with Valtio v1.7.1+. ([Reference](https://github.com/Noitidart/valtio-persist/issues/7#issue-1413423599)) ([Reference 2](https://github.com/Noitidart/valtio-persist/issues/9))
+
+The library will be overhauled eventually, if anyone wants to help get started, the working solution is here, but it's not generic. - https://github.com/Noitidart/valtio-persist/issues/7#issuecomment-1362076372
+
 # valtio-persist
 
 `npm i valtio-persist` allows flexible and performant saving of state to disk.
